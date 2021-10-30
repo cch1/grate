@@ -1,17 +1,20 @@
-(ns atp-rankings
+(ns atp.db
+  (:refer-clojure :exclude [load])
   (:require [clojure.data.csv :as csv]
             [clojure.java.io :as io]))
+
+;; https://github.com/JeffSackmann/tennis_atp
 
 ;; Reference: https://www.grandslamtennistours.com/wimbledon/schedule-of-play
 (defn date-offset
   "Estimate the number of days after that start of the tournament a given match took place"
   [{:keys [draw level round]}]
   {:pre [(string? level) (string? round)] :post [(int? %)]}
-  (assert (#{"128" "64" "32" "16" "8" "4"} draw) (format "Unknown draw: %s" draw))
+  (assert (#{"128" "64" "32" "24" "16" "8" "4"} draw) (format "Unknown draw: %s" draw))
   (if (or (= "F" level) (= "RR" round))
     0 ; Round Robin -no way to know the ordering AFAICT; same with Tour Finals (draw of eight)
     (let [offsets (case draw
-                    ("32") {"F" 5 "SF" 3 "QF" 2 "R16" 1 "R32" 0}
+                    ("32" "24") {"F" 5 "SF" 3 "QF" 2 "R16" 1 "R32" 0}
                     ("64") {"F" 6 "SF" 4 "QF" 3 "R16" 2 "R32" 1 "R64" 0}
                     ("128") {"F" 13 "SF" 10 "QF" 8 "R16" 6 "R32" 4 "R64" 2 "R128" 0}
                     (constantly 0))]
@@ -30,13 +33,9 @@
     [k]
     (fn [record] (update record k #(java.time.LocalDate/parse % dtf)))))
 
-(defn make-week-calculator
-  [epoch-start]
-  (let [d0 (.toEpochDay (.adjustInto java.time.DayOfWeek/MONDAY epoch-start))] ; ranking week starts on Monday
-    (fn [{date :date :as record}]
-      (assoc record
-             :week (quot (- (.toEpochDay date) d0) 7)
-             :week-of (.adjustInto java.time.DayOfWeek/MONDAY date)))))
+(defn calculate-week
+  [{date :date :as record}]
+  (assoc record :week-of (.adjustInto java.time.DayOfWeek/MONDAY date))) ; ratings week starts on Monday.
 
 (defn record-maker
   [fields header]
@@ -68,27 +67,27 @@
 
 (defn generate-results
   [csv]
-  (let [results     (let [xform  (comp (map (record-maker fields (first csv)))
-                                       (map generate-id)
-                                       (map (make-date-hydrater :tournament-start))
-                                       (map estimate-match-date))]
-                      (doall (eduction xform (rest csv))))
-        epoch-start (transduce (map :date) (fn
-                                             ([] java.time.LocalDate/MAX)
-                                             ([result] result)
-                                             ([d0 d1] (if (pos? (compare d0 d1)) d1 d0)))
-                               results)]
-    [epoch-start (eduction (map (make-week-calculator epoch-start)) results)]))
+  (let [results (let [xform (comp (map (record-maker fields (first csv)))
+                                  (map generate-id)
+                                  (map (make-date-hydrater :tournament-start))
+                                  (map estimate-match-date)
+                                  (map calculate-week))]
+                  (doall (eduction xform (rest csv))))
+        ;; The epoch starts and ends on a Monday
+        epoch   (transduce (map :week-of) (fn
+                                            ([] [java.time.LocalDate/MAX java.time.LocalDate/MIN])
+                                            ([result] result)
+                                            ([[es ee] d] [(if (pos? (compare es d)) d es)
+                                                          (if (neg? (compare ee d)) d ee)]))
+                           results)]
+    [epoch results]))
 
-(defn advance-week
-  [d]
-  (.plusWeeks d 1))
+(defn load
+  [file]
+  (with-open [reader (io/reader file)]
+    (-> reader csv/read-csv generate-results)))
 
-(defn main
-  []
-  (let [rankings {}
-        [epoch-start results] (with-open [reader (io/reader "results/atp_matches_2019.csv")]
-                                (-> reader csv/read-csv generate-results))
-        weeks (iterate advance-week epoch-start)
-        results-by-week (group-by :week-of results)]
-    (sequence (map (fn [week] (results-by-week week ()))) weeks)))
+
+
+;; let [d0 (.toEpochDay (.adjustInto java.time.DayOfWeek/MONDAY epoch-start))] ; ranking week starts on Monday
+;;          :week (quot (- (.toEpochDay date) d0) 7)
