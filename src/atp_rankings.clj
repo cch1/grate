@@ -34,7 +34,9 @@
   [epoch-start]
   (let [d0 (.toEpochDay (.adjustInto java.time.DayOfWeek/MONDAY epoch-start))] ; ranking week starts on Monday
     (fn [{date :date :as record}]
-      (assoc record :week (quot (- (.toEpochDay date) d0) 7)))))
+      (assoc record
+             :week (quot (- (.toEpochDay date) d0) 7)
+             :week-of (.adjustInto java.time.DayOfWeek/MONDAY date)))))
 
 (defn record-maker
   [fields header]
@@ -64,20 +66,29 @@
              "draw_size"     :draw
              "tourney_level" :level})
 
-(defn main
-  []
-  (let [rankings    {}
-        results     (with-open [reader (io/reader "results/atp_matches_2019.csv")]
-                      (let [csv    (csv/read-csv reader)
-                            xform  (comp (map (record-maker fields (first csv)))
-                                         (map generate-id)
-                                         (map (make-date-hydrater :tournament-start))
-                                         (map estimate-match-date))]
-                        (doall (eduction xform (rest csv)))))
+(defn generate-results
+  [csv]
+  (let [results     (let [xform  (comp (map (record-maker fields (first csv)))
+                                       (map generate-id)
+                                       (map (make-date-hydrater :tournament-start))
+                                       (map estimate-match-date))]
+                      (doall (eduction xform (rest csv))))
         epoch-start (transduce (map :date) (fn
                                              ([] java.time.LocalDate/MAX)
                                              ([result] result)
                                              ([d0 d1] (if (pos? (compare d0 d1)) d1 d0)))
-                               results)
-        weekly-results     (group-by :week (map (make-week-calculator epoch-start) results))]
-    (weekly-results 0)))
+                               results)]
+    [epoch-start (eduction (map (make-week-calculator epoch-start)) results)]))
+
+(defn advance-week
+  [d]
+  (.plusWeeks d 1))
+
+(defn main
+  []
+  (let [rankings {}
+        [epoch-start results] (with-open [reader (io/reader "results/atp_matches_2019.csv")]
+                                (-> reader csv/read-csv generate-results))
+        weeks (iterate advance-week epoch-start)
+        results-by-week (group-by :week-of results)]
+    (sequence (map (fn [week] (results-by-week week ()))) weeks)))
