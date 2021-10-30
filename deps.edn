@@ -1,0 +1,16 @@
+{:paths ["src" "resources"]
+ :deps {org.clojure/clojure {:mvn/version "1.9.0"}
+        org.clojure/tools.logging {:mvn/version "0.4.1"}
+        org.clojure/data.csv {:mvn/version "1.0.0"}
+        org.slf4j/slf4j-api {:mvn/version "1.7.25"}
+        org.slf4j/jcl-over-slf4j {:mvn/version "1.7.25"}
+        ch.qos.logback/logback-classic {:mvn/version "1.2.3"}}
+ :jvm-opts ["-Xss2m"]
+ :aliases {;; clj -X:test-runner
+           :test-runner {:extra-deps {io.github.cognitect-labs/test-runner
+                                      {:git/url "https://github.com/cognitect-labs/test-runner.git"
+                                       :tag "0.5.0" :sha "48c3c67f98362ba1e20526db4eeb6996209c050a"}}
+                         :main-opts ["-m" "cognitect.test-runner"]
+                         :jvm-opts ["-DENVIRONMENT=test"]
+                         :exec-fn cognitect.test-runner.api/test
+                         :exec-args {:dirs ["src"]}}}}
