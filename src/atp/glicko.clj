@@ -69,6 +69,9 @@
         results-by-player (into {} (map normalize-results) (merge-with concat winners losers))]
     (into {} (map (partial update-player db')) results-by-player)))
 
+(defn rankings [db]
+  (sort-by (comp #(* -1 %) first val) db))
+
 ;; Predictions
 (defn expected* [[ri di] [rj dj]] (/ 1 (+ 1 (Math/pow 10 (* -1 (g (Math/sqrt (+ (* di di) (* dj dj)))) (/ (- ri rj) 400))))))
 (defn expected [db k0 k1] (expected* (rating db k0) (rating db k1)))
