@@ -2,10 +2,6 @@
 (ns atp.glicko
   (:refer-clojure :exclude [update]))
 
-(defn advance-week
-  [d]
-  (.plusWeeks d 1))
-
 (def c (Math/sqrt (+ (* 50 50) 104))) ; Typical player (with a ratings deviation of 50) would be as unpredicatble as an unranked player after two years
 
 (defn update-vals ; This will be obviated by a built-in function of the same name in Clojure 1.11.0

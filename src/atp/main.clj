@@ -74,12 +74,6 @@
   [d]
   (.plusWeeks d 1))
 
-(def default-rating [1500 350])
-
-(def c (Math/sqrt (+ (* 50 50) 104))) ; Typical player (with a ratings deviation of 50) would be as unpredicatble as an unranked player after two years
-
-(defn age-ranking [[player [rating deviation]]] [player [rating (max (min (Math/sqrt (+ (* deviation deviation) (* c c))) 350) 5)]])
-
 (defn main
   []
   (let [[[epoch-start _] results] (db/load (io/file "results/atp_matches_2019.csv"))
