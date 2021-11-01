@@ -80,13 +80,4 @@
         weeks (iterate advance-week epoch-start)
         results-by-week (group-by :week-of results)
         weekly-results (sequence (map (fn [week] [week (results-by-week week ())])) weeks)]
-    (reductions (fn [rankings [week results]]
-                  (let [aged-rankings (map age-ranking rankings)]
-                    (reduce (fn [rankings {:keys [winner loser]}]
-                              (-> rankings
-                                  (update winner (fn [[rating deviation]] [(inc (or rating 1500)) (or deviation 350)]))
-                                  (update loser (fn [[rating deviation]] [(dec (or rating 1500)) (or deviation 350)]))))
-                            aged-rankings
-                            results)))
-                {}
-                weekly-results)))
+    (reductions rater/update {} (map second weekly-results))))
