@@ -36,7 +36,6 @@
                                                   g (g rdo)]
                                               (* g g e (- 1 e)))))
                            +
-                           0
                            results)))))
 
 (defn update-player [db [player results]]
@@ -48,7 +47,6 @@
                                                      g (g rdo)]
                                                  (* g (- s e)))))
                               +
-                              0
                               results)))
         rd' (Math/sqrt (/ 1 (+ (/ 1 (* rd rd)) (/ 1 d2))))]
     [player [r' rd']]))
@@ -67,7 +65,7 @@
         winners (group-by :winner results)
         losers (group-by :loser results)
         results-by-player (into {} (map normalize-results) (merge-with concat winners losers))]
-    (into {} (map (partial update-player db')) results-by-player)))
+    (into db' (map (partial update-player db')) results-by-player)))
 
 (defn rankings [db]
   (sort-by (comp #(* -1 %) first val) db))
