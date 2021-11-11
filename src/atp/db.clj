@@ -33,9 +33,10 @@
     [k]
     (fn [record] (update record k #(java.time.LocalDate/parse % dtf)))))
 
-(defn calculate-week
-  [{date :date :as record}]
-  (assoc record :week-of (.adjustInto java.time.DayOfWeek/MONDAY date))) ; ratings week starts on Monday.
+(defn- make-week-calculator
+  [k]
+  (fn [record]
+    (assoc record :week-of (.adjustInto java.time.DayOfWeek/MONDAY (record k))))) ; ratings week starts on Monday.
 
 (defn record-maker
   [fields header]
@@ -71,7 +72,7 @@
                                   (map generate-id)
                                   (map (make-date-hydrater :tournament-start))
                                   (map estimate-match-date)
-                                  (map calculate-week))]
+                                  (map (make-week-calculator :date)))]
                   (doall (eduction xform (rest csv))))
         ;; The epoch starts and ends on a Monday
         epoch   (transduce (map :week-of) (fn
