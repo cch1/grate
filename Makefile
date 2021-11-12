@@ -23,3 +23,7 @@ results/%/: | results/
 .PRECIOUS: results/%.log
 results/%.log: | results/
 	git log --grep $* --topo-order --reverse --decorate=no --abbrev=8 --pretty=format:"%h %an %cI %s" > $@
+
+.PHONY: clean
+clean:
+	rm -rf results/
