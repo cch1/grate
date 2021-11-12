@@ -30,3 +30,10 @@
   (let [ratings (rate *in*)
         rankings (map (fn [[week ratings]] (rater/rankings ratings)) ratings)]
     (emit *out* (last rankings))))
+
+(defn event03
+  [{field-name 'field-name record-index 'record-index :as args}]
+  (let [db (csv/read-csv *in*)
+        record (nth db record-index)]
+    (prn ((zipmap (first db) record) (str field-name)))))
+
