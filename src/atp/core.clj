@@ -64,3 +64,10 @@
              (int (/ ampw num-weeks))
              mmpw
              most-actives)))
+
+(defn event05
+  [& args]
+  (let [ratings (rate *in*)
+        rankings (map (fn [[week ratings]] (rater/rankings ratings)) ratings)
+        final (map (fn [[player [rating rd]]] [player (Math/round rating) (Math/round rd)]) (last rankings))]
+    (emit *out* (take 6 final))))
