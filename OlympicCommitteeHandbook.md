@@ -63,9 +63,16 @@ For each Event the Olympic Committee follows this script:
 9. Judge announces scores for the Event.
 10. Scorekeeper announces and posts the running scoreboard.
 
+## Event Notes
+### Event03
+``` bash
+cat resources/Event03.csv | make Event03 namelast 11
+```
+ANSWER: "Reilly Opelka"
+
 ## Closing Ceremonies
 Scorekeeper announces the final scores.
 Scorekeeper awards prizes to the winning Team.
-
+Olympic Committee solicits input for future Hackathons
 
 FIN
