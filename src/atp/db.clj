@@ -71,8 +71,7 @@
   (let [results (let [xform (comp (map (record-maker fields (first csv)))
                                   (map generate-id)
                                   (map (make-date-hydrater :tournament-start))
-                                  (map estimate-match-date)
-                                  (map (make-week-calculator :date)))]
+                                  (map (make-week-calculator :tournament-start)))]
                   (doall (eduction xform (rest csv))))
         ;; The epoch starts and ends on a Monday
         epoch   (transduce (map :week-of) (fn
