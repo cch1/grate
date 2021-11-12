@@ -24,6 +24,16 @@ The Games Repository contains a _Team Submodule_ for each team (pointing to the 
 #### Games Channel
 The Olympic Committee communicates precise written instructions via a conversation in the shared Slack [Games Channel](https://guaranteedrate.slack.com/archives/C02JUBVNG8Y).  A huddle may be used for verbal instructions that may clarify the rules.  Instead of posting messages to the _Games Channel_ competitors should contact the Olympic Committee members via direct message to minimize the noise in this sacred channel.
 
+### Notes on ESCs and ESC-Reference Commits
+* ESCs are evaluated by make targets of the form `<EventID>` (e.g. `Event04`) in the `./Makefile` file of the Games Repository.
+* The make targets generate output in the `./results/<EventID>` directory.
+* The Judge will make the Event target (e.g. `make Event01`) on the Judge computer at the end of each Event.
+* The make target will generate a log of ESC Reference Commits in the `log.txt` file of the event results directory.
+* Order of submission of ESCs will be determined by commit ancestry (topological order) of the ESC-Reference Commits in the Games Repository.
+* The make target may capture output of the ESC evaluation in a file per team in the event results directory.
+* Correctness of an ESC may only partially be confirmed by captured output -for some Events the Judge will inspect the output to confirm correctness.
+* It is possible to simulate the evaluation of an ESC locally by running the `make <EventID>` command from a local clone of the Games Repository.
+
 ## Preparation for The Games
 1. Competitors will be randomly assigned to a Team prior to the start of The Games; they remain on that Team for the duration of The Games.
 2. Each Team will select a single member Competitor as Team Captain.

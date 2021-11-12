@@ -13,15 +13,11 @@ update:
 	git pull
 	git submodule update --init
 
-results/:
-	mkdir $@
-
 .PRECIOUS: results/%/
-results/%/: | results/
-	mkdir $@
+results/%/:
+	mkdir -p $@
 
-.PRECIOUS: results/%.log
-results/%.log: | results/
+results/%/log.txt: | results/%/
 	git log --grep $* --topo-order --reverse --decorate=no --abbrev=8 --pretty=format:"%h %an %cI %s" > $@
 
 .PHONY: clean
