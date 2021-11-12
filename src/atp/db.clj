@@ -84,11 +84,6 @@
     [epoch results]))
 
 (defn load
-  [file]
-  (with-open [reader (io/reader file)]
+  [reader]
+  (with-open [reader reader]
     (-> reader csv/read-csv generate-results)))
-
-
-
-;; let [d0 (.toEpochDay (.adjustInto java.time.DayOfWeek/MONDAY epoch-start))] ; ranking week starts on Monday
-;;          :week (quot (- (.toEpochDay date) d0) 7)
